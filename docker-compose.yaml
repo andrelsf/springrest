@@ -1,0 +1,50 @@
+version: "3.5"
+
+networks: 
+  net-games-api:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.1.0.0/24
+
+services:
+  games-api:
+    hostname: games-api
+    build:
+      context: ./games-api
+      dockerfile: Dockerfile
+    labels:
+      com.dev.linux.author: "Andre Ferreira"
+      com.dev.linux.description: "Games API with Spring"
+      com.dev.linux.license: "MIT"
+    expose:
+      - 8080
+    restart: 
+      on-failure
+    links:
+      - games-api-db
+    depends_on:
+      - games-api-db
+    networks:
+      net-games-api:
+        ipv4_address: "10.1.0.254"
+
+  games-api-db:
+    hostname: games-api-db
+    build:
+      context: ./.docker/games-api-db
+      dockerfile: Dockerfile
+    labels:
+      com.dev.linux.author: "Andre Ferreira"
+      com.dev.linux.description: "Database PostgreSQL Games API"
+      com.dev.linux.license: "MIT"
+    env_file: 
+      - ./.docker/games-api-db/.env
+    volumes: 
+      - ./.docker/games-api-db/data:/var/lib/postgresql/data/
+    expose: 
+      - 5432
+    networks: 
+      net-project:
+        ipv4_address: "10.1.0.253"
